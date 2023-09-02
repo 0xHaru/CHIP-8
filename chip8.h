@@ -113,6 +113,9 @@ void c8_press_key(Chip8 *vm, int key);
 // ASSERT: 0 <= key <= 15
 void c8_release_key(Chip8 *vm, int key);
 
+// Sets frequency of the emulator (or its "speed").
+void c8_set_freq(Chip8 *vm, int emu_freq);
+
 // Sets behavior (CHIP-8, CHIP-48/S-CHIP 1.0 or S-CHIP 1.1) of the emulator.
 void c8_set_platform(Chip8 *vm, Platform plt);
 

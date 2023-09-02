@@ -17,7 +17,7 @@ You can launch the program with the following command:
 For instance:
 
 ```
-./chip8 10 840 ./ROMs/games/ALIEN
+./chip8 10 1200 ./ROMs/games/ALIEN
 ```
 
 Common emulator frequencies: `540`, `840` and `1200` (for S-CHIP games)

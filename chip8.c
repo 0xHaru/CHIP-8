@@ -192,6 +192,12 @@ c8_release_key(Chip8 *vm, int key)
 }
 
 void
+c8_set_freq(Chip8 *vm, int emu_freq)
+{
+    vm->IPF = (int) ((double) emu_freq / GAME_LOOP_FREQ + 0.5);
+}
+
+void
 c8_set_platform(Chip8 *vm, Platform plt)
 {
     vm->platform = plt;
