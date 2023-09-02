@@ -1,0 +1,133 @@
+DRW Vx, Vy, nibble - Dxyn
+
+- CHIP-8 sprites may be up to 15 bytes, for a possible sprite size of 8x15
+- S-CHIP hi-res sprites are 16x16 pixels
+- A pixel is represented by a single bit
+
+Pseudo code
+===========
+
+V[0xF] = 0
+screen_width = hi_res ? 128 : 64
+screen_height = hi_res ? 64 : 32
+
+// Top-left coordinate of the sprite (origin)
+xo = V[x] % screen_width   // X origin (column)
+yo = V[y] % screen_height  // Y origin (row)
+
+// Draw an n pixels tall sprite
+for (row = 0 row < n row++)
+    if (yo + row >= screen_height) break
+        sprite_row = RAM[I + row]
+
+    // Sprites are guaranteed to be 8 pixels wide
+    // (where each pixel is represented by a single bit)
+    for (col = 0 col < 8 col++)
+        if (xo + col >= screen_width) break
+        xc = xo + col  // X origin + X offset
+        yc = yo + row  // Y origin + Y offset
+
+        sprite_pixel = (sprite_row & (1 << (7 - col))) != 0
+
+        if (hi_res)
+            V[0xF] |= get_pixel(yc, xc) & sprite_pixel
+
+            if (get_pixel(yc, xc) ^ sprite_pixel)
+                set_pixel(yc, xc)
+            else
+                clear_pixel(yc, xc)
+        else
+            V[0xF] |= get_pixel(2 * yc, 2 * xc) & sprite_pixel
+
+            // Scale 64x32 up to 128x64
+            if (get_pixel(2 * yc, 2 * xc) ^ sprite_pixel)
+                set_pixel(2 * yc, 2 * xc)
+                set_pixel(2 * yc, 2 * xc + 1)
+                set_pixel(2 * yc + 1, 2 * xc)
+                set_pixel(2 * yc + 1, 2 * xc + 1)
+            else
+                clear_pixel(2 * yc, 2 * xc)
+                clear_pixel(2 * yc, 2 * xc + 1)
+                clear_pixel(2 * yc + 1, 2 * xc)
+                clear_pixel(2 * yc + 1, 2 * xc + 1)
+
+-------------------------------------------------------------------------------
+
+DRW Vx, Vy, 0 - Dxy0 (S-CHIP)
+
+Pseudo code
+===========
+
+V[0xF] = 0
+screen_width = hi_res ? 128 : 64
+screen_height = hi_res ? 64 : 32
+
+// Top-left coordinate of the sprite (origin)
+xo = V[x] % screen_width   // X origin (column)
+yo = V[y] % screen_height  // Y origin (row)
+
+// Draw a 16 pixels tall hi-res sprite
+for (row = 0 row < 16 row++)
+    if (yo + row >= screen_height) break
+    sprite_row = RAM[I + 2 * row] << 8 | RAM[I + 2 * row + 1]
+
+    // Hi-res sprites are guaranteed to be 16 pixels wide
+    // (where each pixel is represented by a single bit)
+    for (col = 0 col < 16 col++)
+        if (xo + col >= screen_width) break
+        xc = xo + col  // X origin + X offset
+        yc = yo + row  // Y origin + Y offset
+
+        sprite_pixel = (sprite_row & (1 << (15 - col))) != 0
+        V[0xF] |= get_pixel(yc, xc) & sprite_pixel
+
+        if (get_pixel(yc, xc) ^ sprite_pixel)
+            set_pixel(yc, xc)
+        else
+            clear_pixel(yc, xc)
+
+
+Key differences from Dxyn
+=========================
+
+1. For-loops bounds:
+    - Hi-res sprites are guaranteed to be 16 pixels tall,
+      while standard sprites have a variable height (1-15 pixels)
+
+    - Hi-res sprites are guaranteed to be 16 pixels wide,
+      while standard sprite are guaranteed to be 8 pixels wide
+
+2. "S-CHIP repurposes drawing a 0-height Chip8 sprite for a special
+    drawing operation. S-CHIP high resolution sprites are 16x16 pixels,
+    stored row-wise in 32 bytes. Each row of the sprite data is a byte
+    for the left half of the row followed by a byte for the right half of the row."
+
+  Each row is now 2 bytes long (rather than 1 byte), that's why we need to
+  multiply by 2 and sum 1.
+
+  Row 0 is made up by byte 0 and 1, row 1 by byte 2 and 3, row 2 by byte 4 and 5 ...
+                          2*0   +1               2*1   +1               2*2   +1
+
+     0    ...    7
+  +-----+-----+-----+
+  |     |     |     |
+  +-----+-----+-----+
+           ^
+           |
+           |
+        +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+        |     |     |     |     |     |     |     |     |     |     |     |
+        +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+           0     1     2     3     4     5    6      7    ...   30    31
+
+        |           |           |           |           |     |           |
+        +-----------+-----------+-----------+-----------+     +-----------+
+            row 0       row 1       row 2       row 3     ...    row 15
+         2x8=16bits
+
+
+Sources:
+=======
+
+https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#dxyn-display
+https://johnearnest.github.io/Octo/docs/SuperChip.html#the-superchip-instructions

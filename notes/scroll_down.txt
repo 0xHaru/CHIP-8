@@ -1,0 +1,49 @@
+SCD n rows - 00Cn (S-CHIP)
+
+Description
+===========
+
+I have to operate in a bottom-up fashion. I start from the last row and
+I copy the row n lines above it into it. Then I move to the second-to-last
+row and copy the row n lines above it into it, and so on. I continue this
+process until I reach the n-th row from the top, at which point I stop.
+This is because each of the first n-th rows don't have a row that is n rows
+above it to copy from. These row are then cleared out.
+
+Diagram
+=======
+
+TIP: follow the arrows from destination to source
+
+Example: n = 2, the first n lines will be cleared
+
+              +-----+-----+-----+-----+-----+
+              |     |     |     |     |     | --------+
+              +-----+-----+-----+-----+-----+         |
+              |     |     |     |     |     | ----+   |
+              +-----+-----+-----+-----+-----+     |   |
+    +-------- |     |     |     |     |     | <---|---+
+    |         +-----+-----+-----+-----+-----+     |
+    |   +---- |     |     |     |     |     | <---+
+    |   |     +-----+-----+-----+-----+-----+
+    +---|---> |     |     |     |     |     | --------+
+        |     +-----+-----+-----+-----+-----+         |
+        +---> |     |     |     |     |     | ----+   |
+              +-----+-----+-----+-----+-----+     |   |
+              |     |     |     |     |     | <---|---+
+              +-----+-----+-----+-----+-----+     |
+              |     |     |     |     |     | <---+
+              +-----+-----+-----+-----+-----+
+
+Pseudo code
+===========
+
+rows = 64
+
+rows = rows - 1
+
+while (rows >= n)
+    copy rows - n into rows
+    rows = rows - 1
+
+Clear the first n rows

@@ -1,0 +1,102 @@
+SCREEN (S-CHIP)
+
+The screen is a 128x64 matrix. Unfortunately this representation takes up
+quite a bit of space. Rather than representing each pixel inside a row using
+an entire byte, we will represent each pixel using a single bit. This means that
+each row will be 128/8=16 bytes long (instead of 128 bytes long).
+
+This way instead of taking up 128*64=8192 bytes, our in-memory representation
+will only use 16*64=1024 bytes.
+
+Example
+=======
+
+How to map these high-level coordinates row=2 col=3,to an actual in-memory pixel?
+
+
+High-level representation
+
+
+           0     1     2     3    ...   127
+        +-----+-----+-----+-----+-----+-----+
+    0   |     |     |     |     |     |     |
+        +-----+-----+-----+-----+-----+-----+
+    1   |     |     |     |     |     |     |
+        +-----+-----+-----+-----+-----+-----+
+    2   |     |     |     |  *  |     |     |
+        +-----+-----+-----+-----+-----+-----+
+   ...  |     |     |     |     |     |     |
+        +-----+-----+-----+-----+-----+-----+
+   63   |     |     |     |     |     |     |
+        +-----+-----+-----+-----+-----+-----+
+
+
+In-memory representation
+
+
+     0    ...    7              0     1     2     3    ...    7
+  +-----+-----+-----+        +-----+-----+-----+-----+-----+-----+
+  |     |     |     |        |     |     |     |  *  |     |     |             Each box is a BIT
+  +-----+-----+-----+        +-----+-----+-----+-----+-----+-----+
+           ^                                   ^
+           |                                   |
+           |                                   |
+        +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+        |     |     |     |     |     |     |     |     |     |     |     |    Each box is a BYTE
+        +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+           0    ...   15    16    ...   31    32    ...   63    ...   1023
+
+        |                 |                 |                 |
+        +-----------------+-----------------+-----------------+
+               row 0            row 1            row 2
+            16x8=128bits
+
+
+
+get_pixel(row, col)
+   byte = 128 * row + col;        // Row major order
+   byte /= 8;                     // Convert 128x64 to 16x64
+   bitmask = 1 << (7 - col % 8);  // Bitmask to get pixel
+   return (screen[byte] & bitmask) != 0;
+
+
+get_pixel(2, 3)
+   byte = 128 * 2 + 3 = 259
+   byte = 259 / 8 = 32
+   bitmask = 1 << (7 - 3 % 8) = 1 << 4 = 0b00010000
+   return (screen[32] & 0b00010000) != 0
+
+           0bxxx1xxxx &
+           0b00010000 =
+           ------------
+           0b00010000 -> 16
+
+
+-------------------------------------------------------------------------------
+
+
+Lo-res mode
+===========
+
+When operating in lo-res mode (64x32) we have to scale everything up
+by a factor of 2 (128x64) to match the actual screen size.
+
+
+      0                  63                   127
+      +-------------------+--------------------+
+      |                   |                    |
+      |                   |                    |
+      |                   |                    |
+      |                   |                    |
+   31 +-------------------+                    |
+      |                                        |
+      |                                        |
+      |                                        |
+      |                                        |
+   63 +----------------------------------------+
+
+
+Each pixel in lo-res mode must be scaled accordingly:
+
+      [*][ ]    [*][*]
+      [ ][ ] -> [*][*]

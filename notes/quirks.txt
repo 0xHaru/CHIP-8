@@ -1,0 +1,86 @@
+QUIRKS
+
+CHIP-8 and S-CHIP emulators developed many quirks (ambiguous instructions)
+over the years. My emulator will support the following quirks.
+
+SHIFT quirk
+===========
+
+Description: On most systems the shift opcodes take Vy as input and stores
+             the shifted version of Vy into Vx. The interpreters for the HP48
+             took Vx as both the input and the output, introducing the SHIFT quirk.
+
+IfTrue:  Opcodes 8xy6 and 8xyE take Vx as both input and output
+IfFalse: Opcodes 8xy6 and 8xyE take Vy as input and Vx as output
+
+JUMP quirk
+==========
+
+Description: The jump to <address> + V0 opcode was wrongly implemented on all the HP48
+             interpreters as jump to <address> + Vx, introducing the jump quirk.
+
+IfTrue:  Opcode Bxkk jumps to address xkk + Vx
+IfFalse: Opcode Bnnn jumps to address nnn + V0
+
+LOAD/STORE quirk 1: increment I register by X
+=============================================
+
+Description: On most systems storing and retrieving data between registers
+             and memory increments the I register with x + 1 (the number of
+             registers read or written). So for each register read or written,
+             the index register would be incremented. The CHIP-48 interpreter
+             for the HP48 would only increment the I register by x, introducing
+             the first LOAD/STORE quirk.
+
+IfTrue:  Fx55 and FX65 increment the I register with x
+IfFalse: Fx55 and FX65 increment the I register with x + 1
+
+LOAD/STORE quirk 2: leave I register unchanged
+==============================================
+
+Description: On most systems storing and retrieving data between registers
+             and memory increments the I register relative to the number
+             of registers read or written. The SUPER-CHIP 1.1 interpreter for
+             the HP48 however did not increment the I register at all,
+             introducing the second LOAD/STORE quirk.
+
+IfTrue:  Fx55 and Fx65 leave the I register unchanged
+IfFalse: Fx55 and Fx65 increment the I register
+
+--------------------------------------------------------------------------------
+
+SUPPORTED PLATFORMS
+
+Modern CHIP-8
+=============
+
+SHIFT      quirk  : FALSE
+JUMP       quirk  : FALSE
+LOAD/STORE quirk 1: FALSE
+LOAD/STORE quirk 2: FALSE
+
+SUPER-CHIP 1.0 / CHIP-48
+========================
+
+SHIFT      quirk  : TRUE
+JUMP       quirk  : TRUE
+LOAD/STORE quirk 1: TRUE
+LOAD/STORE quirk 2: FALSE
+
+SUPER-CHIP 1.1
+==============
+
+SHIFT      quirk  : TRUE
+JUMP       quirk  : TRUE
+LOAD/STORE quirk 1: FALSE
+LOAD/STORE quirk 2: TRUE
+
+--------------------------------------------------------------------------------
+
+SOURCES
+
+https://github.com/chip-8/chip-8-database
+
+SHIFT      quirk  : https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#8xy6-and-8xye-shift
+JUMP       quirk  : https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#bnnn-jump-with-offset
+LOAD/STORE quirk 2: https://tobiasvl.github.io/blog/write-a-chip-8-emulator/#fx55-and-fx65-store-and-load-memory

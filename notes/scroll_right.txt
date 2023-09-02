@@ -1,0 +1,76 @@
+SCR 4 pixels - 00FB (S-CHIP)
+
+Description
+===========
+
+The leftmost byte of each row is an edge case because nothing precedes it.
+
+I have to begin right-shifting from END (rightmost) to START (leftmost).
+If I operated from start to end, I would overwrite the elements because
+I would repeatedly right-shift the leftmost element.
+
+      +-----+-----+-----+-----+-----+
+      |  a  | ... |  x  |  y  |  z  |
+      +-----+-----+-----+-----+-----+
+
+         +-----+
+         |     v
+      +-----+-----+-----+-----+-----+
+      |  a  |  a  |  a  | ... |  a  |   WRONG!
+      +-----+-----+-----+-----+-----+
+               |     ^
+               +-----+
+
+Diagram
+=======
+
+TIP: follow the arrows from destination to source
+
+First I right-shift x and then I would right-shift x-1, x-2 and so on
+(to avoid overwriting).
+
+       x-1                  x
+
+   +--------+           +--------+
+   |        |           |        |
+-------     v        -------     v
+1 1 0 1  1 0 0 0  |  1 0 1 1  0 0 0 1
+         -------        ^     -------        ^
+            |           |        |           |
+            +-----------+        +-----------+
+
+
+After the 4 bits shift:
+
+x x x x  1 1 0 1  |  1 0 0 0  1 0 1 1
+
+Pseudo code
+===========
+
+ROWS = 64
+COLS = 128 / 8 = 16
+
+for (y = 0; y < ROWS; y++)
+    for (x = COLS - 1; x > 0; x--)
+        A = screen[y * COLS + x]     >> 4
+        B = screen[y * COLS + x - 1] << 4
+        screen[y * COLS + x] = A | B
+
+    screen[y * COLS] >>= 4
+
+
+for (y = 0; y < ROWS; y++)
+    for (x = COLS - 1; x > 0; x--)
+        screen[y * COLS + x] = screen[y * COLS + x]     >> 4 |
+                               screen[y * COLS + x - 1] << 4
+
+    screen[y * COLS] >>= 4
+
+Alternative version:
+
+for (y = 0; y < ROWS; y++)
+    for (x = COLS - 1; x > 0; x--)
+        screen[y * COLS + x] >>= 4
+        screen[y * COLS + x] |= screen[y * COLS + x - 1] << 4
+
+    screen[y * COLS] >>= 4

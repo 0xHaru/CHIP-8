@@ -1,0 +1,24 @@
+Language: Cpp
+BasedOnStyle: Chromium
+ColumnLimit: 80
+IndentWidth: 4
+
+PointerAlignment: Right
+SpaceAfterCStyleCast: true
+IndentCaseLabels: false
+
+AlwaysBreakAfterReturnType: TopLevelDefinitions
+AlwaysBreakBeforeMultilineStrings: false
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: true
+
+DisableFormat: false
+
+# Ad hoc
+AllowShortIfStatementsOnASingleLine: WithoutElse
+PenaltyBreakAssignment: 6

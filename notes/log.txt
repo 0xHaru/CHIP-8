@@ -1,0 +1,62 @@
+2023/08/28 - Rounding without math.h
+
+int a = (int) ((double) 540 / 60 + 0.5); // 9
+int b = 540 / 60 + 0.5;                  // 9
+
+int c = (int) ((double) 740 / 60 + 0.5); // 12
+int d = 740 / 60 + 0.5;                  // 12
+
+int e = (int) ((double) 760 / 60 + 0.5); // 13 -> Correct solution
+int f = 760 / 60 + 0.5;                  // 12 (!)
+
+2023/08/28 - Assertions without libc
+
+https://nullprogram.com/blog/2022/06/26/
+
+#ifdef DEBUG
+#define ASSERT(expr)             \
+    if (!(expr)) {               \
+        *(volatile int *) 0 = 0; \
+    }
+#else
+#define ASSERT(expr)
+#endif
+
+2023/08/29 - Coordinates
+
+https://developer.mozilla.org/en-US/docs/Web/CSS/CSSOM_view/Coordinate_systems
+
+2023/08/31 - Testing
+
+I tested the emulator using this* test suite and
+it passed all the tests.
+
+1-chip8-logo.ch8 - OK
+2-ibm-logo.ch8   - OK
+3-corax+.ch8     - OK
+4-flag.ch8       - OK
+5-quirks.ch8     - OK**
+6-keypad.ch8     - OK
+
+* https://github.com/Timendus/chip8-test-suite
+
+** "vF reset" and "Display wait" tests fail on CHIP-8 behavior because
+    my emulator doesn't support these quirks
+
+2023/09/01 - Testing
+
+I tried out most of the programs from this* repo and
+they all seem to work. Just make sure to set the correct platform
+for each game!
+
+* https://github.com/kripod/chip8-roms
+
+2023/09/01 - Some cool games
+
+- Space Invaders (David Winter)     - S-CHIP
+- Tetris (Fran Dachille)            - CHIP-48
+- Blitz (David Winter)              - CHIP-8
+- Bowling (Gooitzen van der Wal)    - CHIP-8
+- Tic Tac Toe (David Winter)        - S-CHIP
+- Russian Roulette (Carmelo Cortez) - CHIP-8
+- ALIEN                             - S-CHIP

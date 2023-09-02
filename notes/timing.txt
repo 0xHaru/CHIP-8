@@ -1,0 +1,64 @@
+TIMING
+
+I wanted to decouple the frequency of the delay and sound timer (constant
+at 60Hz) from the emulator frequency (variable and adjustable by the player).
+
+I experimented with two different approaches:
+
+1. The game loop delay is variable and depends on the emulator frequency*
+   selected by the user. Each emulation cycle handles exactly one instruction.
+   The timers are decreased every n-th game loop iteration,
+   where n = EMU_FREQ / 60.
+
+   For example, if EMU_FREQ = 540 the delay and sound timer are decreased
+   every 9th cycle (540 / 60 = 9).
+
+2. The game loop delay is constant at 16.666ms to achieve a framerate
+   of 60fps. In this approach, each emulation cycle deals with a variable
+   number of instructions. For instance, if EMU_FREQ = 540 each emulation
+   cycle handles 9 instructions.
+
+* Emulator frequency = Number of instructions executed each second
+
+Which one is the better approach?
+=================================
+
+In my opinion the second approach is better.
+
+The major downside of the first approach is that it calls a sleep-like function
+for a very short of time after each instruction (if IPS=540 the sleep delay
+would be around 1.85ms). From my understanding, this type of function doesn't
+offer this kind of precision.
+
+So I decided to decouple the frequency of the delay and sound timer (constant
+at 60Hz) from the emulator frequency (variable and adjustable by the player)
+using the second approach.
+
+The game loop delay is constant at 16.666ms (to achieve a framerate of 60fps),
+while the number of instructions executed each emulation cycle is variable.
+
+This allows the timers to be decremented after every emulation cycle at a
+constant rate of 60 Hz.
+
+Further considerations
+======================
+
+1. Although not all instructions take the same amount of time to be executed,
+   even the slowest one requires a negligible amount of time. Meaning that we
+   can behave as if they all took the same amount of time.
+
+2. What if the interpreter executes N instructions per cycle and more than
+   one of them is a DRW?
+
+   Only the last one will actually be rendered, the previous ones
+   will never be displayed!
+
+   This isn't a problem, it's not necessary to render all the DRWs.
+
+   "There's literally no reason to try and push all screen updates to the
+   screen as they come. Some games will want to try and do a ton of draws
+   at once before a new frame comes across. You'll see that in more modern
+   games since you're going to be emulating S-CHIP as well. Some of them will
+   require upwards of 400 IPF to run normally (or even more than 2000), so you
+   don't want to care about pushing all screen updates sequentially at each
+   new frame going to the screen."
