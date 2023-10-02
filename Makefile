@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Wpedantic -std=c11 -g
-# CFLAGS=-Wall -Wextra -Wpedantic -std=c11 -O2
+CFLAGS=-Wall -Wextra -Wpedantic -std=c99 -g -DDEBUG
+# CFLAGS=-Wall -Wextra -Wpedantic -std=c99 -s -O2
 
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LDFLAGS := $(shell sdl2-config --libs)

@@ -1,17 +1,8 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
-#define DEBUG  // Turns on ASSERT macro
-
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-typedef unsigned long long u64;
-
-_Static_assert(sizeof(u8) == 1, "u8 must be 1 byte long");
-_Static_assert(sizeof(u16) == 2, "u16 must be 2 bytes long");
-_Static_assert(sizeof(u32) == 4, "u32 must be 4 bytes long");
-_Static_assert(sizeof(u64) == 8, "u64 must be 8 bytes long");
+#include <stdbool.h>
+#include <stdint.h>
 
 // Delay in milliseconds needed to achieve 60fps (1000/60=16.666)
 #define GAME_LOOP_DELAY 16.666
@@ -37,30 +28,30 @@ typedef enum {
 } Platform;
 
 typedef struct {
-    u8 RAM[RAM_SIZE];
+    uint8_t RAM[RAM_SIZE];
 
-    u16 I;   // Index register
-    u16 PC;  // Program counter
+    uint16_t I;   // Index register
+    uint16_t PC;  // Program counter
 
-    u16 stack[16];
-    u8 SP;  // Stack pointer
+    uint16_t stack[16];
+    uint8_t SP;  // Stack pointer
 
-    u8 V[16];          // Variable registers
-    u8 hp48_flags[8];  // HP-48's "RPL user flag" registers (S-CHIP)
+    uint8_t V[16];          // Variable registers
+    uint8_t hp48_flags[8];  // HP-48's "RPL user flag" registers (S-CHIP)
 
-    u8 screen[SCREEN_SIZE];
-    u8 keypad[KEYPAD_SIZE];
-    u8 wait_for_key;
+    uint8_t screen[SCREEN_SIZE];
+    uint8_t keypad[KEYPAD_SIZE];
+    uint8_t wait_for_key;
 
-    u8 DT;  // Delay timer
-    u8 ST;  // Sound timer
+    uint8_t DT;  // Delay timer
+    uint8_t ST;  // Sound timer
 
-    u16 opcode;  // Current opcode
-    u64 rng;     // PRNG state
-    int IPF;     // No. instructions executed each frame
+    uint16_t opcode;  // Current opcode
+    uint64_t rng;     // PRNG state
+    int IPF;          // No. instructions executed each frame
 
-    _Bool hi_res;          // Enable 128x64 hi-res mode (S-CHIP)
-    _Bool screen_updated;  // Was the screen updated?
+    bool hi_res;          // Enable 128x64 hi-res mode (S-CHIP)
+    bool screen_updated;  // Was the screen updated?
 
     Platform platform;  // CHIP-8, CHIP-48/S-CHIP 1.0 or S-CHIP 1.1 behavior?
 } Chip8;
@@ -75,7 +66,7 @@ void c8_soft_reset(Chip8 *vm);
 // - emu_freq: frequency of the emulator (or its "speed")
 // - plt: CHIP-8, CHIP-48/S-CHIP 1.0 or S-CHIP 1.1 behavior?
 // - seed: initial seed for the PRNG
-void c8_init(Chip8 *vm, int emu_freq, Platform plt, unsigned long long seed);
+void c8_init(Chip8 *vm, int emu_freq, Platform plt, uint64_t seed);
 
 // Loads ROM into the memory of the emulator.
 // ASSERT: size <= 3584
@@ -89,14 +80,14 @@ int c8_cycle(Chip8 *vm);
 void c8_decrement_timers(Chip8 *vm);
 
 // Returns true if sound timer is non-zero and sound should be played.
-_Bool c8_sound(Chip8 *vm);
+bool c8_sound(Chip8 *vm);
 
 // Returns true if one of the instructions executed by c8_cycle() modified
 // the screen, in which case the display should be updated.
-_Bool c8_screen_updated(Chip8 *vm);
+bool c8_screen_updated(Chip8 *vm);
 
 // Returns true if the last executed instruction was 00FD. (S-CHIP)
-_Bool c8_ended(Chip8 *vm);
+bool c8_ended(Chip8 *vm);
 
 // Returns 1 if the pixel is set, 0 if the pixel is cleared.
 // ASSERT: 0 <= row <= 63 && 0 <= col <= 127

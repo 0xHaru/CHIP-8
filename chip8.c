@@ -1,8 +1,5 @@
 #include "chip8.h"
 
-#define true 1
-#define false 0
-
 // Source: skeeto/handmade hero
 #ifdef DEBUG
 #define ASSERT(expr)             \
@@ -15,7 +12,7 @@
 
 // Source: libgcc
 static void *
-memset_(void *dest, int val, u64 len)
+memset_(void *dest, int val, uint64_t len)
 {
     unsigned char *ptr = dest;
     while (len-- > 0)
@@ -25,7 +22,7 @@ memset_(void *dest, int val, u64 len)
 
 // Source: libgcc
 static void *
-memcpy_(void *dest, const void *src, u64 len)
+memcpy_(void *dest, const void *src, uint64_t len)
 {
     char *d = dest;
     const char *s = src;
@@ -35,14 +32,14 @@ memcpy_(void *dest, const void *src, u64 len)
 }
 
 // Source: skeeto
-static u8
-rand_byte(u64 *s)
+static uint8_t
+rand_byte(uint64_t *s)
 {
     *s = *s * 0x3243f6a8885a308d + 1;
     return *s >> 56;
 }
 
-static const u8 font[] = {
+static const uint8_t font[] = {
     // Standard 8x5 font
     0xF0, 0x90, 0x90, 0x90, 0xF0,  // 0
     0x20, 0x60, 0x20, 0x20, 0x70,  // 1
@@ -85,23 +82,14 @@ c8_reset(Chip8 *vm)
 void
 c8_soft_reset(Chip8 *vm)
 {
-    vm->I = 0;
-    vm->PC = PC_OFFSET;
-    memset_(vm->stack, 0, sizeof(vm->stack[0]) * 16);
-    vm->SP = 0;
-    memset_(vm->V, 0, sizeof(vm->V[0]) * 16);
-    memset_(vm->hp48_flags, 0, sizeof(vm->hp48_flags[0]) * 8);
-    memset_(vm->screen, 0, sizeof(vm->screen[0]) * SCREEN_SIZE);
-    memset_(vm->keypad, 0, sizeof(vm->keypad[0]) * KEYPAD_SIZE);
-    vm->DT = 0;
-    vm->ST = 0;
-    vm->opcode = 0;
-    vm->hi_res = false;
-    vm->screen_updated = true;
+    *vm = (Chip8){
+        .PC = PC_OFFSET,
+        .screen_updated = true,
+    };
 }
 
 void
-c8_init(Chip8 *vm, int emu_freq, Platform plt, unsigned long long seed)
+c8_init(Chip8 *vm, int emu_freq, Platform plt, uint64_t seed)
 {
     c8_reset(vm);
     vm->IPF = (int) ((double) emu_freq / GAME_LOOP_FREQ + 0.5);
@@ -123,19 +111,19 @@ c8_decrement_timers(Chip8 *vm)
     if (vm->ST > 0) vm->ST -= 1;
 }
 
-_Bool
+bool
 c8_sound(Chip8 *vm)
 {
     return vm->ST > 0;
 }
 
-_Bool
+bool
 c8_screen_updated(Chip8 *vm)
 {
     return vm->screen_updated;
 }
 
-_Bool
+bool
 c8_ended(Chip8 *vm)
 {
     return vm->opcode == 0x00FD;
@@ -145,9 +133,9 @@ int
 c8_get_pixel(Chip8 *vm, int row, int col)
 {
     ASSERT(row >= 0 && row <= 63 && col >= 0 && col <= 127);
-    int byte = 128 * row + col;       // Row major order
-    byte /= 8;                        // Convert 128x64 to 16x64
-    u8 bitmask = 1 << (7 - col % 8);  // Bitmask to get pixel
+    int byte = 128 * row + col;            // Row major order
+    byte /= 8;                             // Convert 128x64 to 16x64
+    uint8_t bitmask = 1 << (7 - col % 8);  // Bitmask to get pixel
     return (vm->screen[byte] & bitmask) != 0;
 }
 
@@ -155,9 +143,9 @@ void
 set_pixel(Chip8 *vm, int row, int col)
 {
     ASSERT(row >= 0 && row <= 63 && col >= 0 && col <= 127);
-    int byte = 128 * row + col;       // Row major order
-    byte /= 8;                        // Convert 128x64 to 16x64
-    u8 bitmask = 1 << (7 - col % 8);  // Bitmask to set pixel
+    int byte = 128 * row + col;            // Row major order
+    byte /= 8;                             // Convert 128x64 to 16x64
+    uint8_t bitmask = 1 << (7 - col % 8);  // Bitmask to set pixel
     vm->screen[byte] |= bitmask;
 }
 
@@ -165,9 +153,9 @@ void
 clear_pixel(Chip8 *vm, int row, int col)
 {
     ASSERT(row >= 0 && row <= 63 && col >= 0 && col <= 127);
-    int byte = 128 * row + col;       // Row major order
-    byte /= 8;                        // Convert 128x64 to 16x64
-    u8 bitmask = 1 << (7 - col % 8);  // Bitmask to clear pixel
+    int byte = 128 * row + col;            // Row major order
+    byte /= 8;                             // Convert 128x64 to 16x64
+    uint8_t bitmask = 1 << (7 - col % 8);  // Bitmask to clear pixel
     vm->screen[byte] &= ~bitmask;
 }
 
@@ -206,7 +194,7 @@ c8_set_platform(Chip8 *vm, Platform plt)
 // Display n-byte sprite starting at memory location I at (Vx, Vy),
 // set VF = collision
 static void
-op_Dxyn(Chip8 *vm, u8 x, u8 y, u8 n)
+op_Dxyn(Chip8 *vm, uint8_t x, uint8_t y, uint8_t n)
 {
     vm->V[0xF] = 0;
     int screen_width = vm->hi_res ? 128 : 64;
@@ -219,7 +207,7 @@ op_Dxyn(Chip8 *vm, u8 x, u8 y, u8 n)
     // Draw an n pixels tall sprite
     for (int row = 0; row < n; row++) {
         if (yo + row >= screen_height) break;
-        u8 sprite_row = vm->RAM[vm->I + row];
+        uint8_t sprite_row = vm->RAM[vm->I + row];
 
         // Sprites are guaranteed to be 8 pixels wide
         // (where each pixel is represented by a single bit)
@@ -228,7 +216,7 @@ op_Dxyn(Chip8 *vm, u8 x, u8 y, u8 n)
             int xc = xo + col;  // X origin + X offset
             int yc = yo + row;  // Y origin + Y offset
 
-            u8 sprite_pixel = (sprite_row & (1 << (7 - col))) != 0;
+            uint8_t sprite_pixel = (sprite_row & (1 << (7 - col))) != 0;
 
             if (vm->hi_res) {
                 vm->V[0xF] |= c8_get_pixel(vm, yc, xc) & sprite_pixel;
@@ -259,7 +247,7 @@ op_Dxyn(Chip8 *vm, u8 x, u8 y, u8 n)
 
 // If n=0 and extended mode, show 16x16 sprite (S-CHIP)
 static void
-op_Dxy0(Chip8 *vm, u8 x, u8 y, u8 n)
+op_Dxy0(Chip8 *vm, uint8_t x, uint8_t y, uint8_t n)
 {
     ASSERT(vm->hi_res && n == 0);
 
@@ -274,8 +262,8 @@ op_Dxy0(Chip8 *vm, u8 x, u8 y, u8 n)
     // Draw a 16 pixels tall hi-res sprite
     for (int row = 0; row < 16; row++) {
         if (yo + row >= screen_height) break;
-        u16 sprite_row = vm->RAM[vm->I + 2 * row] << 8 |
-                         vm->RAM[vm->I + 2 * row + 1];
+        uint16_t sprite_row = vm->RAM[vm->I + 2 * row] << 8 |
+                              vm->RAM[vm->I + 2 * row + 1];
 
         // Hi-res sprites are guaranteed to be 16 pixels wide
         // (where each pixel is represented by a single bit)
@@ -284,7 +272,7 @@ op_Dxy0(Chip8 *vm, u8 x, u8 y, u8 n)
             int xc = xo + col;  // X origin + X offset
             int yc = yo + row;  // Y origin + Y offset
 
-            u8 sprite_pixel = (sprite_row & (1 << (15 - col))) != 0;
+            uint8_t sprite_pixel = (sprite_row & (1 << (15 - col))) != 0;
             vm->V[0xF] |= c8_get_pixel(vm, yc, xc) & sprite_pixel;
 
             if (c8_get_pixel(vm, yc, xc) ^ sprite_pixel)
@@ -297,7 +285,7 @@ op_Dxy0(Chip8 *vm, u8 x, u8 y, u8 n)
 
 // Scroll display n lines down (S-CHIP)
 static void
-op_00Cn(Chip8 *vm, u8 n)
+op_00Cn(Chip8 *vm, uint8_t n)
 {
     int rows = vm->hi_res ? 64 : 32;
     int cols = vm->hi_res ? (128 / 8) : (64 / 8);
@@ -341,7 +329,7 @@ op_00FC(Chip8 *vm)
 
 // Wait for a key press, store the value of the key in Vx
 static void
-op_Fx0A(Chip8 *vm, u8 x)
+op_Fx0A(Chip8 *vm, uint8_t x)
 {
     // On the original COSMAC VIP, the key was only registered when it was
     // pressed and then *released*
@@ -378,11 +366,11 @@ static int
 decode_and_execute(Chip8 *vm)
 {
     // Decode
-    u8 x = (vm->opcode & 0x0F00) >> 8;
-    u8 y = (vm->opcode & 0x00F0) >> 4;
-    u8 n = vm->opcode & 0x000F;
-    u8 kk = vm->opcode & 0x00FF;
-    u16 nnn = vm->opcode & 0x0FFF;
+    uint8_t x = (vm->opcode & 0x0F00) >> 8;
+    uint8_t y = (vm->opcode & 0x00F0) >> 4;
+    uint8_t n = vm->opcode & 0x000F;
+    uint8_t kk = vm->opcode & 0x00FF;
+    uint16_t nnn = vm->opcode & 0x0FFF;
 
     // Execute
     switch (vm->opcode & 0xF000) {
@@ -486,7 +474,7 @@ decode_and_execute(Chip8 *vm)
 
         case 0x0004: {
             // ADD Vx, Vy (8xy4)
-            _Bool carry = (vm->V[x] + vm->V[y]) > 255;
+            bool carry = (vm->V[x] + vm->V[y]) > 255;
             vm->V[x] += vm->V[y];
             vm->V[0xF] = carry;
             break;
@@ -494,7 +482,7 @@ decode_and_execute(Chip8 *vm)
 
         case 0x0005: {
             // SUB Vx, Vy (8xy5)
-            _Bool not_borrow = vm->V[x] > vm->V[y];
+            bool not_borrow = vm->V[x] > vm->V[y];
             vm->V[x] -= vm->V[y];
             vm->V[0xF] = not_borrow;
             break;
@@ -503,7 +491,7 @@ decode_and_execute(Chip8 *vm)
         case 0x0006: {
             // SHR Vx {, Vy} (8xy6) - Ambiguous instruction
             if (vm->platform == P_CHIP8) vm->V[x] = vm->V[y];
-            u8 vf = vm->V[x] & 0x01;
+            uint8_t vf = vm->V[x] & 0x01;
             vm->V[x] >>= 1;
             vm->V[0xF] = vf;
             break;
@@ -511,7 +499,7 @@ decode_and_execute(Chip8 *vm)
 
         case 0x0007: {
             // SUBN Vx, Vy (8xy7)
-            _Bool not_borrow = vm->V[y] > vm->V[x];
+            bool not_borrow = vm->V[y] > vm->V[x];
             vm->V[x] = vm->V[y] - vm->V[x];
             vm->V[0xF] = not_borrow;
             break;
@@ -520,7 +508,7 @@ decode_and_execute(Chip8 *vm)
         case 0x000E: {
             // SHL Vx {, Vy} (8xyE) - Ambiguous instruction
             if (vm->platform == P_CHIP8) vm->V[x] = vm->V[y];
-            u8 vf = (vm->V[x] & 0x80) >> 7;
+            uint8_t vf = (vm->V[x] & 0x80) >> 7;
             vm->V[x] <<= 1;
             vm->V[0xF] = vf;
             break;

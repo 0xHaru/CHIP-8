@@ -1,5 +1,3 @@
-#include <assert.h>
-#include <stdbool.h>
 #include <time.h>
 
 #include "SDL2/SDL.h"
@@ -98,7 +96,7 @@ handle_input_event(Chip8 *vm)
 void
 mono_to_rgba(Chip8 *vm, uint32_t *pixels, int size)
 {
-    assert(size >= SCREEN_SIZE * 8);
+    SDL_assert(size >= SCREEN_SIZE * 8);
     for (int row = 0; row < SCREEN_HEIGHT; row++) {
         for (int col = 0; col < SCREEN_WIDTH; col++) {
             int i = SCREEN_WIDTH * row + col;
