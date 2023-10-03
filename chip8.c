@@ -219,26 +219,32 @@ op_Dxyn(Chip8 *vm, uint8_t x, uint8_t y, uint8_t n)
             uint8_t sprite_pixel = (sprite_row & (1 << (7 - col))) != 0;
 
             if (vm->hi_res) {
-                vm->V[0xF] |= c8_get_pixel(vm, yc, xc) & sprite_pixel;
+                int screen_pixel = c8_get_pixel(vm, yc, xc);
+                vm->V[0xF] |= screen_pixel & sprite_pixel;
 
-                if (c8_get_pixel(vm, yc, xc) ^ sprite_pixel)
+                if (screen_pixel ^ sprite_pixel)
                     set_pixel(vm, yc, xc);
                 else
                     clear_pixel(vm, yc, xc);
             } else {
-                vm->V[0xF] |= c8_get_pixel(vm, 2 * yc, 2 * xc) & sprite_pixel;
+                // Scale coordinates
+                xc *= 2;
+                yc *= 2;
+
+                int screen_pixel = c8_get_pixel(vm, yc, xc);
+                vm->V[0xF] |= screen_pixel & sprite_pixel;
 
                 // Scale 64x32 up to 128x64
-                if (c8_get_pixel(vm, 2 * yc, 2 * xc) ^ sprite_pixel) {
-                    set_pixel(vm, 2 * yc, 2 * xc);
-                    set_pixel(vm, 2 * yc, 2 * xc + 1);
-                    set_pixel(vm, 2 * yc + 1, 2 * xc);
-                    set_pixel(vm, 2 * yc + 1, 2 * xc + 1);
+                if (screen_pixel ^ sprite_pixel) {
+                    set_pixel(vm, yc, xc);
+                    set_pixel(vm, yc, xc + 1);
+                    set_pixel(vm, yc + 1, xc);
+                    set_pixel(vm, yc + 1, xc + 1);
                 } else {
-                    clear_pixel(vm, 2 * yc, 2 * xc);
-                    clear_pixel(vm, 2 * yc, 2 * xc + 1);
-                    clear_pixel(vm, 2 * yc + 1, 2 * xc);
-                    clear_pixel(vm, 2 * yc + 1, 2 * xc + 1);
+                    clear_pixel(vm, yc, xc);
+                    clear_pixel(vm, yc, xc + 1);
+                    clear_pixel(vm, yc + 1, xc);
+                    clear_pixel(vm, yc + 1, xc + 1);
                 }
             }
         }
@@ -273,9 +279,10 @@ op_Dxy0(Chip8 *vm, uint8_t x, uint8_t y, uint8_t n)
             int yc = yo + row;  // Y origin + Y offset
 
             uint8_t sprite_pixel = (sprite_row & (1 << (15 - col))) != 0;
-            vm->V[0xF] |= c8_get_pixel(vm, yc, xc) & sprite_pixel;
+            int screen_pixel = c8_get_pixel(vm, yc, xc);
+            vm->V[0xF] |= screen_pixel & sprite_pixel;
 
-            if (c8_get_pixel(vm, yc, xc) ^ sprite_pixel)
+            if (screen_pixel ^ sprite_pixel)
                 set_pixel(vm, yc, xc);
             else
                 clear_pixel(vm, yc, xc);
