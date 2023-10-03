@@ -1,12 +1,15 @@
 # CHIP-8
 
-A CHIP-8 and S-CHIP emulator written in C. The core has no I/O and is freestanding (doesn't depend on libc).
+A CHIP-8 and S-CHIP emulator written in C99. The core has no I/O and
+is [freestanding](https://gcc.gnu.org/onlinedocs/gcc/Standards.html).
 
-**Supported platforms**: "modern" CHIP-8, CHIP-48, S-CHIP 1.0 and S-CHIP 1.1.
+**Supported platforms**: "modern" CHIP-8, CHIP-48, S-CHIP 1.0 and
+S-CHIP 1.1.
 
 ## Compilation and usage
 
-To compile the SDL implementation, make sure that SDL2 is installed, and then run `make`.
+To compile the SDL implementation, make sure that SDL2 is installed,
+and then run `make`.
 
 You can launch the program with the following command:
 
@@ -20,7 +23,8 @@ For instance:
 ./chip8 10 1200 ./ROMs/games/ALIEN
 ```
 
-Common emulator frequencies: `540`, `840` and `1200` (for S-CHIP games)
+Common emulator frequencies: `540`, `840` and `1200` (for S-CHIP
+games)
 
 ## References
 
@@ -37,4 +41,5 @@ Common emulator frequencies: `540`, `840` and `1200` (for S-CHIP games)
 
 ## License
 
-This source code is licensed under the GNU General Public License v3.0.
+This source code is licensed under the GNU General Public License
+v3.0.
