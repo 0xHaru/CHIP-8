@@ -1,7 +1,7 @@
 # CHIP-8
 
 A CHIP-8 and S-CHIP emulator written in C99. The core has no I/O and
-is [freestanding](https://gcc.gnu.org/onlinedocs/gcc/Standards.html).
+is [freestanding](https://port70.net/~nsz/c/c99/n1256.html#4p6).
 
 **Supported platforms**: "modern" CHIP-8, CHIP-48, S-CHIP 1.0 and
 S-CHIP 1.1.
