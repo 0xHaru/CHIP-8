@@ -5,6 +5,8 @@ CFLAGS=-Wall -Wextra -Wpedantic -std=c99 -g -DDEBUG
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LDFLAGS := $(shell sdl2-config --libs)
 
+.PHONY: all clean
+
 all: chip8
 
 chip8: sdl.c chip8.c chip8.h

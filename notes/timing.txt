@@ -26,7 +26,7 @@ Which one is the better approach?
 In my opinion the second approach is better.
 
 The major downside of the first approach is that it calls a sleep-like function
-for a very short of time after each instruction (if IPS=540 the sleep delay
+for a very short amount of time after each instruction (if IPS=540 the sleep delay
 would be around 1.85ms). From my understanding, this type of function doesn't
 offer this kind of precision.
 
