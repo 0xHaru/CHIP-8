@@ -255,11 +255,11 @@ op_Dxyn(Chip8 *vm, uint8_t x, uint8_t y, uint8_t n)
 static void
 op_Dxy0(Chip8 *vm, uint8_t x, uint8_t y, uint8_t n)
 {
-    ASSERT(vm->hi_res && n == 0);
+    ASSERT(n == 0 && vm->hi_res);
 
     vm->V[0xF] = 0;
-    int screen_width = vm->hi_res ? 128 : 64;
-    int screen_height = vm->hi_res ? 64 : 32;
+    int screen_width = 128;
+    int screen_height = 64;
 
     // Top-left coordinate of the sprite (origin)
     int xo = vm->V[x] % screen_width;   // X origin (column)
@@ -515,7 +515,7 @@ decode_and_execute(Chip8 *vm)
         case 0x000E: {
             // SHL Vx {, Vy} (8xyE) - Ambiguous instruction
             if (vm->platform == P_CHIP8) vm->V[x] = vm->V[y];
-            uint8_t vf = (vm->V[x] & 0x80) >> 7;
+            uint8_t vf = vm->V[x] >> 7;
             vm->V[x] <<= 1;
             vm->V[0xF] = vf;
             break;
